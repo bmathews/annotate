@@ -1,5 +1,21 @@
-body {
+body, html {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+circle {
+  opacity: .5;
+  cursor: pointer;
+  transition: opacity 125ms ease, fill 125ms ease;
+}
+
+circle:hover {
+  opacity: 1;
+  fill: rgba(255,255,255,.5) !important;
 }
