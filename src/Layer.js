@@ -32,30 +32,50 @@ const Node = inject("store")(
       );
     }
 
+    const { p1, p2, label } = node;
+
     const onMouseDownPoint1 = e => {
-      store.startNodeDrag(node.p1);
+      store.startNodeDrag({
+        node: p1,
+        from: store.mouseEventToCoordinates(e)
+      });
       e.stopPropagation();
-    }
+    };
 
     const onMouseDownPoint2 = e => {
-      store.startNodeDrag(node.p2);
+      store.startNodeDrag({
+        node: p2,
+        from: store.mouseEventToCoordinates(e)
+      });
       e.stopPropagation();
-    }
+    };
+
+    const offset = radius + (stroke * 2);
 
     return (
       <g>
+        <text
+          x={p1.x}
+          y={p1.y}
+          dominant-baseline="central"
+          dx={p1.x > p2.x ? offset : -offset}
+          style={{ fill: color }}
+          textAnchor={p1.x > p2.x ? "start" : "end"}
+        >
+          {label}
+        </text>
         {line}
         <circle
           onMouseDown={onMouseDownPoint1}
-          cx={node.p1.x}
-          cy={node.p1.y}
+          cx={p1.x}
+          cy={p1.y}
           r={radius}
           style={{ stroke: color, strokeWidth: stroke, fill: "transparent" }}
         />
         <circle
           onMouseDown={onMouseDownPoint2}
-          cx={node.p2.x}
-          cy={node.p2.y}
+          cx={p2.x}
+          cy={p2.y}
           r={radius}
           style={{ stroke: color, strokeWidth: stroke, fill: "transparent" }}
         />

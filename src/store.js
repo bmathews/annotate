@@ -6,17 +6,34 @@ class Store {
     extendObservable(this, {
       layers: [],
       selectedLayer: null,
-      draggingNode: null,
+      dragging: null,
       style: {
         radius: 10,
         stroke: 2,
-        color: '#fff'
+        color: "#fff"
+      },
+      dimensions: {
+        left: 0,
+        top: 0,
+        width: 0,
+        height: 0
       }
     });
 
     // Create default layer
     this.addLayer();
   }
+
+  mouseEventToCoordinates = e => {
+    return {
+      x: e.pageX - this.dimensions.left,
+      y: e.pageY - this.dimensions.top
+    };
+  }
+
+  setDimensions = action(dims => {
+    this.dimensions = dims;
+  });
 
   addLayer = action(() => {
     const layer = observable({
@@ -31,25 +48,34 @@ class Store {
   addLabel = action(position => {
     const label = observable({
       id: uniqueId(),
+      label: 'New label',
       p1: { ...position },
       p2: { ...position }
     });
 
     this.selectedLayer.nodes.push(label);
-    this.startNodeDrag(label.p2);
+    this.startNodeDrag({
+      node: label.p2,
+      from: { ...position }
+    });
   });
 
-  startNodeDrag = action(node => {
-    this.draggingNode = node;
+  startNodeDrag = action(opts => {
+    this.dragging = {
+      node: opts.node,
+      from: opts.from
+    };
   });
 
   dragTo = action(position => {
-    const node = this.draggingNode;
-    Object.assign(node, position);
+    const { node, from } = this.dragging;
+    node.x = node.x + position.x - from.x;
+    node.y = node.y + position.y - from.y;
+    this.dragging.from = position;
   });
 
   dragEnd = action(() => {
-    this.draggingNode = null;
+    this.dragging = null;
   });
 }
 

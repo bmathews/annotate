@@ -9,32 +9,38 @@ class Canvas extends Component {
   componentWillMount() {
     const { store } = this.props;
     this.disposer = reaction(
-      () => store.draggingNode,
-      node => {
-        node ? this._addListeners() : this._removeListeners();
+      () => store.dragging,
+      dragging => {
+        dragging ? this._addListeners() : this._removeListeners();
       }
     );
+  }
+
+  componentDidMount() {
+    const { store } = this.props;
+    const el = this.$root;
+    store.setDimensions({
+      left: el.offsetLeft,
+      top: el.offsetTop,
+      width: el.offsetWidth,
+      height: el.offsetHeight
+    });
   }
 
   componentWillUnmount() {
     this.disposer();
   }
 
-  _coordsFromEvent = e => {
-    return {
-      x: e.pageX - this.$root.offsetLeft,
-      y: e.pageY - this.$root.offsetTop
-    };
-  };
-
   _handleMouseDown = e => {
     const { store } = this.props;
-    store.addLabel(this._coordsFromEvent(e));
+    store.addLabel(store.mouseEventToCoordinates(e));
+    e.preventDefault();
   };
 
   _handleMouseMove = e => {
     const { store } = this.props;
-    store.dragTo(this._coordsFromEvent(e));
+    store.dragTo(store.mouseEventToCoordinates(e));
+    e.preventDefault();
   };
 
   _handleMouseUp = e => {
@@ -65,7 +71,7 @@ class Canvas extends Component {
         ref={this._setRef}
         style={{
           backgroundImage: "url('https://images.unsplash.com/photo-1485846753954-dff2171ddb2b?dpr=2&auto=format&fit=crop&w=1500&h=1001&q=80&cs=tinysrgb&crop=')",
-          backgroundSize: 'cover',
+          backgroundSize: "cover",
           height: "100%"
         }}
         onMouseDown={this._handleMouseDown}
