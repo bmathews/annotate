@@ -3,6 +3,12 @@ body, html {
   padding: 0;
   font-family: sans-serif;
   height: 100%;
+  box-sizing: border-box;
+  line-height: 1.2em;
+}
+
+*, *:after, *:before {
+  box-sizing: inherit;
 }
 
 #root {

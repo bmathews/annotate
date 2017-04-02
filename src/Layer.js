@@ -1,12 +1,9 @@
 import React, { Component } from "react";
 import { observer, inject } from "mobx-react";
-import { subtract, length, normalize, add, multiplyScalar } from "./vector";
+import { subtract, normalize, add, length, multiplyScalar } from "./vector";
 
 const intersect = function(origin, radius, otherLineEndPoint) {
-  var v = subtract(otherLineEndPoint, origin);
-  var lineLength = length(length);
-  if (lineLength === 0) throw new Error("Length has to be positive");
-  v = normalize(v);
+  var v = normalize(subtract(otherLineEndPoint, origin));
   return add(origin, multiplyScalar(v, radius));
 };
 
@@ -50,20 +47,48 @@ const Node = inject("store")(
       e.stopPropagation();
     };
 
-    const offset = radius + (stroke * 2);
+    const anchor = p1.x > p2.x ? "start" : "end"
+
+    const onLabelClick = e => {
+      const {top, left, right, height} = e.currentTarget.getBoundingClientRect();
+
+      const rect = {top, height};
+      if (anchor === 'start') {
+        rect.left = left;
+        rect.right = 0;
+        rect.width = 'auto';
+        rect.textAlign = "left";
+      }
+      else {
+        rect.left = 0;
+        rect.width = right;
+        rect.textAlign = "right";
+      }
+
+      store.startLabelEdit({
+        node,
+        rect
+      });
+      e.stopPropagation();
+    }
+
+    let offset = radius + (stroke * 2);
+    if (p1.x <= p2.x) offset *= -1;
 
     return (
       <g>
-        <text
-          x={p1.x}
-          y={p1.y}
-          dominant-baseline="central"
-          dx={p1.x > p2.x ? offset : -offset}
-          style={{ fill: color }}
-          textAnchor={p1.x > p2.x ? "start" : "end"}
-        >
-          {label}
-        </text>
+        <g transform={`translate(${p1.x + offset} ${p1.y})`}>
+          <text
+            onMouseDown={onLabelClick}
+            x={0}
+            y={0}
+            dominant-baseline="central"
+            style={{ fill: color, whiteSpace: 'pre' }}
+            textAnchor={anchor}
+          >
+            {label.split('\n').map((l, i) => <tspan x={0} y={`${i * 1.2}em`}>{l}</tspan>)}
+          </text>
+        </g>
         {line}
         <circle
           onMouseDown={onMouseDownPoint1}

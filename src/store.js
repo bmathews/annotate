@@ -7,6 +7,7 @@ class Store {
       layers: [],
       selectedLayer: null,
       dragging: null,
+      editingLabel: null,
       style: {
         radius: 10,
         stroke: 2,
@@ -76,6 +77,14 @@ class Store {
 
   dragEnd = action(() => {
     this.dragging = null;
+  });
+
+  startLabelEdit = action(opts => {
+    this.editingLabel = opts;
+  });
+
+  stopLabelEdit = action(opts => {
+    this.editingLabel = null;
   });
 }
 

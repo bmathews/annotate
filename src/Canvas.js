@@ -66,6 +66,39 @@ class Canvas extends Component {
 
   render() {
     const { store } = this.props;
+    
+    let editor;
+    if (store.editingLabel) {
+      const value = store.editingLabel.node.label;
+      const {top, left, bottom, right, width, textAlign} = store.editingLabel.rect; 
+
+      const inputStyle = {
+        padding: 0,
+        border: 'none',
+        background: 'none',
+        font: 'inherit',
+        width: '100%',
+        textAlign,
+        whiteSpace: 'pre',
+        overflow: 'hidden',
+        height: '100%'
+      };
+      const style = {
+        position: 'fixed',
+        top,
+        left,
+        bottom,
+        right,
+        width,
+        height: (value.split('\n').length + 1) * 1.2 + 'em'
+      };
+      editor = (
+        <div style={style}>
+          <textarea autoFocus ref={el => el ? el.focus() : null} key={store.editingLabel.node.id} onMouseDown={e => e.stopPropagation()} style={inputStyle} onChange={e => store.editingLabel.node.label = e.target.value} value={value} />
+        </div>
+      );
+    }
+
     return (
       <div
         ref={this._setRef}
@@ -77,6 +110,7 @@ class Canvas extends Component {
         onMouseDown={this._handleMouseDown}
       >
         {store.layers.map(l => <Layer layer={l} key={l.id} />)}
+        {editor}
       </div>
     );
   }
