@@ -83,8 +83,12 @@ class Store {
     this.editingLabel = opts;
   });
 
-  stopLabelEdit = action(opts => {
+  stopLabelEdit = action(() => {
     this.editingLabel = null;
+  });
+
+  setLabel = action((node, value) => {
+    node.label = value;
   });
 }
 

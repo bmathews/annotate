@@ -7,6 +7,63 @@ const intersect = function(origin, radius, otherLineEndPoint) {
   return add(origin, multiplyScalar(v, radius));
 };
 
+class TextArea extends Component {
+  componentDidUpdate() {
+    this.resize();
+  }
+
+  componentDidMount() {
+    this.resize();
+  }
+
+  resize() {
+    requestAnimationFrame(() => {
+      const scrollHeight = this.el.scrollHeight;
+    });
+  }
+
+  render() {
+    const {props} = this;
+    return (
+      <textarea ref={c => this.el = c} {...props} />
+    );
+  }
+}
+
+const NodeText = inject("store")(
+  observer(function({ store, node }) {
+    const { radius, stroke, color } = store.style;
+
+    const { p1, p2 } = node;
+
+    let offset = radius + stroke * 2;
+    if (p1.x <= p2.x) offset *= -1;
+
+    const left = p1.x + offset;
+    const top = p1.y;
+
+    return (
+      <textarea
+        onMouseDown={e => e.stopPropagation()}
+        onBlur={store.stopLabelEdit}
+        style={{
+          transform: 'translateY(-50%)',
+          color,
+          left,
+          top,
+          background: "transparent",
+          position: "absolute",
+          resize: "none",
+          border: "none",
+          outline: "none"
+        }}
+        value={node.label}
+        onChange={e => store.setLabel(node, e.target.value)}
+      />
+    );
+  })
+);
+
 const Node = inject("store")(
   observer(function({ store, node }) {
     let line = null;
@@ -29,7 +86,7 @@ const Node = inject("store")(
       );
     }
 
-    const { p1, p2, label } = node;
+    const { p1, p2 } = node;
 
     const onMouseDownPoint1 = e => {
       store.startNodeDrag({
@@ -47,48 +104,8 @@ const Node = inject("store")(
       e.stopPropagation();
     };
 
-    const anchor = p1.x > p2.x ? "start" : "end"
-
-    const onLabelClick = e => {
-      const {top, left, right, height} = e.currentTarget.getBoundingClientRect();
-
-      const rect = {top, height};
-      if (anchor === 'start') {
-        rect.left = left;
-        rect.right = 0;
-        rect.width = 'auto';
-        rect.textAlign = "left";
-      }
-      else {
-        rect.left = 0;
-        rect.width = right;
-        rect.textAlign = "right";
-      }
-
-      store.startLabelEdit({
-        node,
-        rect
-      });
-      e.stopPropagation();
-    }
-
-    let offset = radius + (stroke * 2);
-    if (p1.x <= p2.x) offset *= -1;
-
     return (
       <g>
-        <g transform={`translate(${p1.x + offset} ${p1.y})`}>
-          <text
-            onMouseDown={onLabelClick}
-            x={0}
-            y={0}
-            dominant-baseline="central"
-            style={{ fill: color, whiteSpace: 'pre' }}
-            textAnchor={anchor}
-          >
-            {label.split('\n').map((l, i) => <tspan x={0} y={`${i * 1.2}em`}>{l}</tspan>)}
-          </text>
-        </g>
         {line}
         <circle
           onMouseDown={onMouseDownPoint1}
@@ -116,11 +133,15 @@ class Layer extends Component {
     const { layer } = this.props;
 
     const lines = layer.nodes.map(n => <Node key={n.id} node={n} />);
+    const text = layer.nodes.map(n => <NodeText key={n.id} node={n} />);
 
     return (
-      <svg style={{ width: "100%", height: "100%" }}>
-        {lines}
-      </svg>
+      <div>
+        <svg style={{ width: "100%", height: "100%", position: "absolute" }}>
+          {lines}
+        </svg>
+        {text}
+      </div>
     );
   }
 }
